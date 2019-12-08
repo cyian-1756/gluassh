@@ -43,7 +43,7 @@ func login(L *lua.LState) int {
 	port := L.CheckString(4)
 	secure := L.CheckBool(5)
 	config := &ssh.ClientConfig{}
-	if !secure {
+	if secure {
 		// SSH client config
 		config = &ssh.ClientConfig{
 			User: username,
@@ -148,16 +148,29 @@ func connectAndCommand(L *lua.LState) int {
 	password := L.CheckString(2)
 	hostname := L.CheckString(3)
 	port := L.CheckString(4)
-	command := L.CheckString(5)
+	secure := L.CheckBool(5)
+	command := L.CheckString(6)
 
-	// SSH client config
-	config := &ssh.ClientConfig{
-		User: username,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(password),
-		},
-		// Non-production only
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	config := &ssh.ClientConfig{}
+
+	if secure {
+		// SSH client config
+		config = &ssh.ClientConfig{
+			User: username,
+			Auth: []ssh.AuthMethod{
+				ssh.Password(password),
+			},
+			// Non-production only
+			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		}
+	} else {
+		// SSH client config
+		config = &ssh.ClientConfig{
+			User: username,
+			Auth: []ssh.AuthMethod{
+				ssh.Password(password),
+			},
+		}
 	}
 
 	// Connect to host
