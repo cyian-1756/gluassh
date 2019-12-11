@@ -124,7 +124,6 @@ func sendCommand(L *lua.LState) int {
 	command := L.CheckString(2)
 	v, _ := ud.Value.(*LuaSshSess)
 
-	fmt.Println(command)
 	_, err := fmt.Fprintf(v.stdin, "%s\n", command)
 	if err != nil {
 		return handleError(err, L)
