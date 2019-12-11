@@ -33,6 +33,7 @@ type LuaSshSess struct {
 	*ssh.Session
 	stdin  io.WriteCloser
 	stdout io.Reader
+	stderr io.Reader
 }
 
 // Starts a new ssh session
@@ -85,13 +86,18 @@ func login(L *lua.LState) int {
 		return handleError(err, L)
 	}
 
+	stderr, err := sess.StderrPipe()
+	if err != nil {
+		return handleError(err, L)
+	}
+
 	err = sess.Shell()
 	if err != nil {
 		return handleError(err, L)
 	}
 
 	ud := L.NewUserData()
-	ud.Value = &LuaSshSess{Session: sess, stdin: stdin, stdout: stdBuf}
+	ud.Value = &LuaSshSess{Session: sess, stdin: stdin, stdout: stdBuf, stderr: stderr}
 	L.SetMetatable(ud, L.GetTypeMetatable("ssh_session_ud"))
 	L.Push(ud)
 	L.Push(lua.LString(string(readConnection(stdBuf))))
